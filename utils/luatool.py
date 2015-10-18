@@ -179,7 +179,8 @@ if __name__ == '__main__':
     if args.verbose:
         sys.stderr.write("\r\nStage 3. Start writing data to flash memory...")
     while line != '':
-        writer(line.strip())
+        l = line.strip()
+        if len(l) > 0 and l[:2] <> '--': writer(l)   
         line = f.readline()
 
     # close both files
