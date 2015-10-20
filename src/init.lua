@@ -1,3 +1,4 @@
+-- show chip info
 majorVer, minorVer, devVer, chipid, flashid, flashsize, flashmode, flashspeed = node.info();
 print("NodeMCU "..majorVer.."."..minorVer.."."..devVer)
 print("ChipID "..chipid)
@@ -6,6 +7,7 @@ print("FlashID "..flashid)
 heap_size = node.heap();
 print("Remaining heap size is: "..heap_size)
 
+-- init Wi-Fi AP
 cfg = {}
 cfg.ssid="george-kickscooter"
 cfg.pwd="qwerty123456"
@@ -19,38 +21,39 @@ wifi.ap.setip(cfg);
 wifi.setmode(wifi.SOFTAP)
 collectgarbage();
 
+-- Compile souce code
+local compileAndRemoveIfNeeded = function(f)
+   if file.open(f) then
+      file.close()
+      print('Compiling:', f)
+      node.compile(f)
+      file.remove(f)
+      collectgarbage()
+   end
+end
+
+local serverFiles = {'server.lua', 'request.lua', 'static.lua', 'header.lua', 'error.lua'}
+for i, f in ipairs(serverFiles) do compileAndRemoveIfNeeded(f) end
+
+compileAndRemoveIfNeeded = nil
+serverFiles = nil
+collectgarbage()
+
+-- Init led stipe
 ws2801.init(4,5)
 n = 10
 delay = 10000
 leds = {}
 
--- (B, G, R)
 function set(v, n)
     for i=0, n do
         leds[i] = v
     end 
 end
-
 function update(n)
     for i=0, n do
         ws2801.write(leds[i])
     end
-end
-
-function split(inputstr, sep)
-    if sep == nil then
-        sep = "%s"
-    end
-    local t={} ; i=1
-    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
-        t[i] = str
-        i = i + 1
-    end
-    return t
-end
-
-function isset(set, key)
-    return set[key] ~= nil
 end
 
 set(string.char(0, 0, 0), n)
@@ -61,6 +64,9 @@ for k=0,255 do
     update(n)
     tmr.delay(delay)
 end
+
+dofile("server.lc")(80)
+
 for k=255,0,-1 do
     set(string.char(k, 0, k), n)
     update(n)
