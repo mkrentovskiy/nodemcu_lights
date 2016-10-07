@@ -1,22 +1,27 @@
 SUDO = $(if $USER=="root",sudo)
 
+FW = bin/nodemcu-master-10-modules-2016-10-07-19-11-33-integer.bin
+
 ESPTOOL = utils/esptool.py
 LUATOOL = utils/luatool.py
 
 UPLOAD = $(SUDO) $(LUATOOL) -f
 
-HTTP_FILES = $(wildcard src/www/*)
-LUA_FILES  = $(wildcard src/modules/*.lua)
-
-write: $(HTTP_FILES) $(LUA_FILES)
+write: 
 	$(SUDO) $(LUATOOL) -w 
-	$(foreach F, $(HTTP_FILES), $(UPLOAD) $(F);) 
-	$(foreach F, $(LUA_FILES),  $(UPLOAD) $(F) -c;) 
-	$(UPLOAD) src/server.lua -c 
+	$(UPLOAD) src/init.lua -r 
+
+update:
 	$(UPLOAD) src/init.lua -r 
 	
-flash:
-	$(SUDO) $(ESPTOOL) write_flash 0x00000 bin/nodemcu-master-10-modules-2015-09-29-17-58-26-integer.bin
+flash: $(FW)
+	$(SUDO) $(ESPTOOL) write_flash 0x00000 $(FW)
 
 console:
 	$(SUDO) minicom
+
+tests-prepare:
+	virtualenv tests/.env
+	. tests/.env/bin/activate
+	pip install requests
+
