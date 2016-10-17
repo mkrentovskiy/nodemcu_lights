@@ -17,9 +17,11 @@ cfg = nil
 collectgarbage();
 
 -- Init led stipe
-ws2801.init(4,5)
+ws2801.init(5,4)
 
-delay = 10000
+s_delay = 500
+l_delay = 10000
+k = 0
 n = 10
 leds = {}
 
@@ -36,27 +38,37 @@ function update(v, n)
 end
 
 -- Starting up
+print "Initial blink."
 for k=0,255 do
-    set(string.char(0, k, k), n)
+    set(string.char(0, 0, k), n)
     update(leds, n)
-    tmr.delay(delay)
+    tmr.delay(s_delay)
 end
-for k=255,0,-1 do
-    set(string.char(k, 0, k), n)
+tmr.delay(l_delay)
+
+for k=255,0,-5 do
+    set(string.char(k, 0, 0), n)
     update(leds, n)
-    tmr.delay(delay)
+    tmr.delay(s_delay)
 end
 
 -- Setup CoAP
-cs=coap.Server()
-cs:listen(5683)
-
+print "Starting CoAP server."
 function lightseq(payload)
+  print "1"
   v = encoder.fromBase64(payload)
+  print "2"
   update(v, string.len(v))
+  print "3"
   tmr.delay(delay)
+  print "4"
   collectgarbage();
+  print "5"
   respond = "{ 'result': 'ok' }"
+  print "6"
   return respond
 end
+
+cs=coap.Server()
+cs:listen(5683)
 cs:func("lightseq") 
