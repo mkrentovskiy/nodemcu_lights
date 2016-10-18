@@ -1,10 +1,12 @@
 SUDO = $(if $USER=="root",sudo)
 
+DEVICE = /dev/ttyUSB0
+
 FIXFW = bin/esp_init_data_default.bin
-FW = bin/nodemcu-master-12-modules-2016-10-13-08-08-42-integer.bin
+FW = bin/nodemcu-master-11-modules-2016-10-18-09-44-21-integer.bin
 
 ESPTOOL = utils/esptool.py
-LUATOOL = utils/luatool.py -p /dev/ttyUSB0 -b 115200
+LUATOOL = utils/luatool.py -p $(DEVICE) -b 115200
 
 UPLOAD = $(SUDO) $(LUATOOL) -f
 
@@ -18,13 +20,8 @@ rgb:
 
 flash: $(FW) $(FIXFW)
 	$(SUDO) $(ESPTOOL) erase_flash
-	$(SUDO) $(ESPTOOL) --port /dev/ttyUSB0 -b 115200 write_flash -fm dio -fs 32m -ff 40m  0x00000 $(FW) 0x3fc000 $(FIXFW)
+	$(SUDO) $(ESPTOOL) --port $(DEVICE) -b 115200 write_flash -fm dio -fs 32m -ff 40m  0x00000 $(FW) 0x3fc000 $(FIXFW)
 
 console:
-	$(SUDO) minicom
-
-tests-prepare:
-	virtualenv tests/.env
-	. tests/.env/bin/activate
-	pip install requests
+	$(SUDO) cu -l $(DEVICE)
 

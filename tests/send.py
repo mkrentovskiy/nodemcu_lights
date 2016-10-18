@@ -1,16 +1,25 @@
 #!/usr/bin/env python
-import requests
+import socket
+import sys
 import base64
 import struct
+import time
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 def pack(R,G,B):
     return struct.pack('BBB', R, G, B)
 
 def send(d):
-    r = requests.post("http://192.168.252.1:5683/v1/lightseq", data=base64.b64encode(d))
-    print(r.status_code, r.reason)
+    sock.sendto(d, ('192.168.250.247', 5000))
 
-s = '';
-for i in range(1,10):
-    s = s + pack(i * 10, i * 11, i * 12)
-send(s)
+for j in range(1,200):
+    s = '';
+    for i in range(1,160):
+        s = s + pack(0, 0, 0)
+    send(s)
+    time.sleep(0.1)
+    #for i in range(1,10):
+    #    s = s + pack(0, 0, 255 - j)
+    #send(s)
+
